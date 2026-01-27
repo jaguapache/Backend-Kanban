@@ -41,7 +41,6 @@ En el archivo `src/main/resources/application.properties` debes configurar la co
 spring.datasource.url=jdbc:postgresql://localhost:5432/kanban_db
 spring.datasource.username=TU_USUARIO
 spring.datasource.password=TU_PASSWORD
-spring.jpa.hibernate.ddl-auto=none
 ```
 
 Ajusta el nombre de la base de datos, usuario y contraseña según tu entorno.
