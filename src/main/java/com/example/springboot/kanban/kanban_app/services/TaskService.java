@@ -28,4 +28,24 @@ public class TaskService {
         return kanbanRepository.findById(id).orElse(null);
     }
 
+    public Task updateTask(Long id, Task updatedTask) {
+        return kanbanRepository.findById(id).map(task -> {
+            task.setTitle(updatedTask.getTitle());
+            task.setStatus(updatedTask.getStatus());
+            task.setPriority(updatedTask.getPriority());
+            return kanbanRepository.save(task);
+        }).orElse(null);
+    }
+
+    public void deleteTask(Long id) {
+        if (!kanbanRepository.existsById(id)) {
+            throw new IllegalArgumentException("Tarea no encontrada con id: " + id);
+        }
+        kanbanRepository.deleteById(id);
+    }
+
+    public List<Task> getTasksByStatus(Task.TaskStatus status) {
+        return kanbanRepository.findByStatus(status);
+    }
+
 }

@@ -21,8 +21,8 @@ Si sigues el enfoque sencillo recomendado (usar `VARCHAR` en lugar de tipos `ENU
 CREATE TABLE tasks (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    status VARCHAR(20) NOT NULL,   -- TODO, DOING, DONE
-    priority VARCHAR(20) NOT NULL  -- Baja, Media, Alta
+    status VARCHAR(20) NOT NULL,   
+    priority VARCHAR(20) NOT NULL  
 );
 
 ALTER TABLE tasks
