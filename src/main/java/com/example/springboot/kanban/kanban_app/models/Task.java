@@ -1,15 +1,36 @@
 package com.example.springboot.kanban.kanban_app.models;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "tasks")
 public class Task implements Cloneable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String title;
-    private String status;
-    private String priority;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskPriority priority;
 
     public Task() {
     }
 
-    public Task(Long id, String title, String status, String priority) {
+    public Task(Long id, String title, TaskStatus status, TaskPriority priority) {
         this.id = id;
         this.title = title;
         this.status = status;
@@ -32,20 +53,32 @@ public class Task implements Cloneable {
         this.title = title;
     }
 
-    public String getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 
-    public String getPriority() {
+    public TaskPriority getPriority() {
         return priority;
     }
 
-    public void setPriority(String priority) {
+    public void setPriority(TaskPriority priority) {
         this.priority = priority;
+    }
+
+    public String toString() {
+        return "{id=" + id + ", title='" + title + "', status=" + status + ", priority=" + priority + "}";
+    }
+
+    public enum TaskStatus {
+        TODO, DOING, DONE
+    }
+
+    public enum TaskPriority {
+        Baja, Media, Alta
     }
 
     @Override

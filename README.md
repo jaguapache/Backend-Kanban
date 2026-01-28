@@ -13,24 +13,25 @@ Este proyecto es el **backend** de una aplicación Kanban de práctica para VIEW
 
 El backend está pensado para trabajar con **PostgreSQL**.
 
-### Creación de tipos ENUM y tabla `tasks`
+### Creación de la tabla `tasks`
 
-Ejecutar en la base de datos el siguiente script SQL para crear los tipos y la tabla necesarios:
+Si sigues el enfoque sencillo recomendado (usar `VARCHAR` en lugar de tipos `ENUM` propios de PostgreSQL), puedes crear la tabla así:
 
 ```sql
--- ENUM para estado de tareas
-CREATE TYPE task_status AS ENUM ('TODO', 'DOING', 'DONE');
-
--- ENUM para prioridad de tareas
-CREATE TYPE task_priority AS ENUM ('Baja', 'Medio', 'Alta');
-
--- Tabla de tareas
 CREATE TABLE tasks (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    status task_status NOT NULL,
-    priority task_priority NOT NULL
+    status VARCHAR(20) NOT NULL,   -- TODO, DOING, DONE
+    priority VARCHAR(20) NOT NULL  -- Baja, Media, Alta
 );
+
+ALTER TABLE tasks
+ADD CONSTRAINT chk_tasks_status
+CHECK (status IN ('TODO', 'DOING', 'DONE'));
+
+ALTER TABLE tasks
+ADD CONSTRAINT chk_tasks_priority
+CHECK (priority IN ('Baja', 'Media', 'Alta'));
 ```
 
 ## Configuración de la aplicación
