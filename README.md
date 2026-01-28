@@ -1,12 +1,12 @@
 # Backend Kanban - VIEWNEXT
 
-Este proyecto es el **backend** de una aplicación Kanban de práctica para VIEWNEXT, desarrollado con **Spring Boot**. Expone una API REST para gestionar las tareas de un tablero Kanban, permitiendo crear, listar y actualizar.
+Este proyecto es el **backend** de una aplicación Kanban de práctica para VIEWNEXT, desarrollado con **Spring Boot**. Expone una API REST para gestionar las tareas de un tablero Kanban, permitiendo crear, listar, actualizar y eliminar tareas.
 
 ## Características principales
 
 - Gestión de tareas (modelo `Task`).
 - Estados de tarea: `TODO`, `DOING`, `DONE`.
-- Prioridades de tarea: `Baja`, `Medio`, `Alta`.
+- Prioridades de tarea: `Baja`, `Media`, `Alta`.
 - Arquitectura típica de Spring Boot: capas de controlador, servicio y repositorio.
 
 ## Base de datos
@@ -14,8 +14,6 @@ Este proyecto es el **backend** de una aplicación Kanban de práctica para VIEW
 El backend está pensado para trabajar con **PostgreSQL**.
 
 ### Creación de la tabla `tasks`
-
-Si sigues el enfoque sencillo recomendado (usar `VARCHAR` en lugar de tipos `ENUM` propios de PostgreSQL), puedes crear la tabla así:
 
 ```sql
 CREATE TABLE tasks (
@@ -36,15 +34,21 @@ CHECK (priority IN ('Baja', 'Media', 'Alta'));
 
 ## Configuración de la aplicación
 
-En el archivo `src/main/resources/application.properties` debes configurar la conexión a tu base de datos PostgreSQL, por ejemplo:
+En el archivo `src/main/resources/application.properties` se configura la conexión a PostgreSQL. Un ejemplo básico es:
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/kanban_db
+spring.datasource.url=jdbc:postgresql://localhost:5432/crud_kanban_db
 spring.datasource.username=TU_USUARIO
 spring.datasource.password=TU_PASSWORD
-```
+``
 
-Ajusta el nombre de la base de datos, usuario y contraseña según tu entorno.
+La API se expone, en estos endpoints:
+
+- `POST /api/kanban/task` → crea una tarea nueva.
+- `GET /api/kanban/tasks` → devuelve la lista de tareas.
+- `PUT /api/kanban/task/{id}` → actualiza una tarea existente.
+- `DELETE /api/kanban/task/{id}` → elimina una tarea.
+- `GET /api/kanban/getByStatus/{status}` → obtiene tareas filtradas por estado (`TODO`, `DOING`, `DONE`).
 
 ## Ejecución del proyecto
 
