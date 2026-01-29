@@ -35,7 +35,7 @@ public class KanbanController {
     @GetMapping("tasks")
     public ResponseEntity<List<Task>> getAllTasks() {
         List<Task> tasks = taskService.getAllTasks();
-        return ResponseEntity.status(HttpStatus.OK).body(tasks);
+        return ResponseEntity.status(tasks.size() > 0 ? HttpStatus.OK : HttpStatus.NO_CONTENT).body(tasks);
     }
 
     @PutMapping("task/{id}")
@@ -48,10 +48,10 @@ public class KanbanController {
     }
 
     @DeleteMapping("/task/{id}")
-    public ResponseEntity<String> deleteTask(@PathVariable Long id) {
+    public ResponseEntity<?> deleteTask(@PathVariable Long id) {
         try {
             taskService.deleteTask(id);
-            return ResponseEntity.ok("Tarea eliminada correctamente");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Tarea no encontrada con id: " + id);
