@@ -146,6 +146,10 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
 }
 ```
 
+## Swagger API
+
+`https://app.swaggerhub.com/apis/viewnext-694/kanban-api/1.0`
+
 ## Ejecución del proyecto
 
 1. Asegúrate de tener **Java 17** (o la versión requerida en `pom.xml`).
