@@ -28,8 +28,9 @@ public class KanbanController {
 
     @PostMapping("task")
     public ResponseEntity<?> createTask(@RequestBody Task task) {
-        if (task.getTitle() == null || task.getTitle().isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El título no puede estar vacío");
+        if (task.getTitle() == null || task.getStatus() == null || task.getPriority() == null
+                || task.getTitle().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El título no puede estar vacío o nulo");
         }
         Task createdTask = taskService.createTask(task);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
@@ -43,8 +44,9 @@ public class KanbanController {
 
     @PutMapping("task/{id}")
     public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody Task task) {
-        if (task.getTitle() == null || task.getTitle().isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El título no puede estar vacío");
+        if (task.getTitle() == null || task.getStatus() == null || task.getPriority() == null
+                || task.getTitle().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El título no puede estar vacío o nulo");
         }
         Task updatedTask = taskService.updateTask(id, task);
         if (updatedTask == null) {
@@ -65,9 +67,15 @@ public class KanbanController {
     }
 
     @GetMapping("/getByStatus/{status}")
-    public String getByStatus(@PathVariable String status) {
-        return taskService.getTasksByStatus(Task.TaskStatus.valueOf(status)).toString();
-
+    public ResponseEntity<?> getByStatus(@PathVariable String status) {
+        try {
+            Task.TaskStatus enumStatus = Task.TaskStatus.valueOf(status);
+            return ResponseEntity.ok(taskService.getTasksByStatus(enumStatus));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("El estado debe ser uno de: TODO, DOING, DONE");
+        }
     }
 
 }
