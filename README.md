@@ -52,7 +52,7 @@ La API se expone, en estos endpoints:
 
 ## Ejecución del proyecto
 
-1. Asegúrate de tener **Java 17** (o la versión requerida en `pom.xml`) y **Maven** instalados.
+1. Asegúrate de tener **Java 17** (o la versión requerida en `pom.xml`).
 2. Compila y ejecuta la aplicación:
 
 ```bash

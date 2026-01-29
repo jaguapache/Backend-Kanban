@@ -27,7 +27,10 @@ public class KanbanController {
     }
 
     @PostMapping("task")
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
+    public ResponseEntity<?> createTask(@RequestBody Task task) {
+        if (task.getTitle() == null || task.getTitle().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El título no puede estar vacío");
+        }
         Task createdTask = taskService.createTask(task);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }
@@ -40,6 +43,9 @@ public class KanbanController {
 
     @PutMapping("task/{id}")
     public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody Task task) {
+        if (task.getTitle() == null || task.getTitle().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El título no puede estar vacío");
+        }
         Task updatedTask = taskService.updateTask(id, task);
         if (updatedTask == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Tarea no encontrada con id: " + id);
