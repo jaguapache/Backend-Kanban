@@ -67,7 +67,7 @@ WHERE status = 'TODO';
 En el archivo `src/main/resources/application.properties` se configura la conexión a PostgreSQL. Un ejemplo básico es:
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/crud_kanban_db
+spring.datasource.url=jdbc:postgresql://localhost:5432/DB_NAME
 spring.datasource.username=TU_USUARIO
 spring.datasource.password=TU_PASSWORD
 ```
