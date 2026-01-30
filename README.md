@@ -34,6 +34,34 @@ CHECK (priority IN ('Baja', 'Media', 'Alta'));
 
 Los contraints son las restricciones para que los campos **status** y **priority** admitan solo los valores **TODO, DOING y DONE** y **Baja, Media y Alta** respectivamente.
 
+### Operaciones SQL básicas sobre `tasks`
+
+```sql
+-- Añadir una tarea
+INSERT INTO tasks (title, status, priority)
+VALUES ('Tarea de prueba', 'TODO', 'Media');
+
+-- Editar (actualizar) una tarea por id
+UPDATE tasks
+SET title = 'Tarea actualizada',
+    status = 'DOING',
+    priority = 'Alta'
+WHERE id = 1;
+
+-- Eliminar una tarea por id
+DELETE FROM tasks
+WHERE id = 1;
+
+-- Obtener todas las tareas
+SELECT id, title, status, priority
+FROM tasks;
+
+-- Obtener tareas filtradas por estado (TODO, DOING, DONE)
+SELECT id, title, status, priority
+FROM tasks
+WHERE status = 'TODO';
+```
+
 ## Configuración de la aplicación
 
 En el archivo `src/main/resources/application.properties` se configura la conexión a PostgreSQL. Un ejemplo básico es:
