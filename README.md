@@ -187,4 +187,4 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
 mvn spring-boot:run
 ```
 
-La aplicación se levantará normalmente en `http://localhost:8080`.
+La aplicación se levantará normalmente en `http://localhost:9000`.
