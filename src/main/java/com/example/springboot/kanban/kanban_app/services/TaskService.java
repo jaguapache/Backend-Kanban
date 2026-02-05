@@ -5,14 +5,14 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.springboot.kanban.kanban_app.models.Task;
-import com.example.springboot.kanban.kanban_app.repositories.KanbanRepository;
+import com.example.springboot.kanban.kanban_app.repositories.TaskRepository;
 
 @Service
 public class TaskService {
 
-    private final KanbanRepository kanbanRepository;
+    private final TaskRepository kanbanRepository;
 
-    public TaskService(KanbanRepository kanbanRepository) {
+    public TaskService(TaskRepository kanbanRepository) {
         this.kanbanRepository = kanbanRepository;
     }
 

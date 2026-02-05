@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/kanban")
-public class KanbanController {
+public class TaskController {
 
     private final TaskService taskService;
 
-    public KanbanController(TaskService taskService) {
+    public TaskController(TaskService taskService) {
         this.taskService = taskService;
     }
 

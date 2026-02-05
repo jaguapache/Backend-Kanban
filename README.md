@@ -53,13 +53,46 @@ DELETE FROM tasks
 WHERE id = 1;
 
 -- Obtener todas las tareas
-SELECT id, title, status, priority
-FROM tasks;
+SELECT * FROM tasks;
 
 -- Obtener tareas filtradas por estado (TODO, DOING, DONE)
 SELECT id, title, status, priority
 FROM tasks
 WHERE status = 'TODO';
+```
+
+### Creación de la tabla `users`
+
+```sql
+CREATE TABLE users (
+    id       BIGINT PRIMARY KEY,
+    name     VARCHAR(100) NOT NULL,
+    lastname VARCHAR(100) NOT NULL,
+    email    VARCHAR(255) NOT NULL,
+    postal   INTEGER NOT NULL
+);
+```
+
+### Operaciones SQL básicas sobre `users`
+
+```sql
+-- Añadir una tarea
+INSERT INTO users (name, lastname, email, postal)
+VALUES ('Alejandro', 'Guapache', 'prueba@hotmail.com', 28050);
+
+-- Editar (actualizar) un usuario por id
+UPDATE users
+SET name = 'Felipe',
+    email = 'prueba@gmail.com',
+    postal = 28020
+WHERE id = 1;
+
+-- Eliminar una tarea por id
+DELETE FROM users
+WHERE id = 1;
+
+-- Obtener todas las tareas
+SELECT * FROM tasks;
 ```
 
 ## Configuración de la aplicación

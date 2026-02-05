@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "tasks")
-public class Task implements Cloneable {
+public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -79,17 +79,6 @@ public class Task implements Cloneable {
 
     public enum TaskPriority {
         Baja, Media, Alta
-    }
-
-    @Override
-    public Object clone() {
-        try {
-            return super.clone();
-
-        } catch (CloneNotSupportedException e) {
-            System.err.println(e);
-            throw new RuntimeException(e);
-        }
     }
 
 }
