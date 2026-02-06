@@ -22,17 +22,17 @@ public class User {
     @Column(nullable = false)
     private String email;
     @Column(nullable = false)
-    private Number postal;
+    private Integer ubication;
 
     public User() {
     }
 
-    public User(Long id, String name, String lastname, String email, Number postal) {
+    public User(Long id, String name, String lastname, String email, Integer ubication) {
         this.id = id;
         this.name = name;
         this.lastname = lastname;
         this.email = email;
-        this.postal = postal;
+        this.ubication = ubication;
     }
 
     public Long getId() {
@@ -67,18 +67,18 @@ public class User {
         this.email = email;
     }
 
-    public Number getPostal() {
-        return postal;
+    public Integer getUbication() {
+        return ubication;
     }
 
-    public void setPostal(Number postal) {
-        this.postal = postal;
+    public void setUbication(Integer ubication) {
+        this.ubication = ubication;
     }
 
     @Override
     public String toString() {
-        return "User [id=" + id + ", name=" + name + ", lastname=" + lastname + ", email=" + email + ", postal="
-                + postal + "]";
+        return "User [id=" + id + ", name=" + name + ", lastname=" + lastname + ", email=" + email + ", ubication="
+                + ubication + "]";
     }
 
 }
