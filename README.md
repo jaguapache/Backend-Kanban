@@ -257,6 +257,8 @@ La API se expone, en estos endpoints:
 
 Puedes importar la siguiente colección en Postman ("Import" → "Raw text") para tener todas las operaciones CRUD preparadas:
 
+### API Tareas
+
 ```json
 {
     "info": {
@@ -344,6 +346,98 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
             }
         }
     ]
+}
+```
+
+### API Usuarios
+
+```json
+{
+  "info": {
+    "name": "Kanban Users Backend - VIEWNEXT",
+    "schema": "<https://schema.getpostman.com/json/collection/v2.1.0/collection.json>"
+  },
+  "item": [
+    {
+      "name": "Crear usuario",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://localhost:9000/api/users/createUser",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9000",
+          "path": ["api", "users", "createUser"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Alejandro\",\n  \"lastname\": \"Guapache\",\n  \"email\": \"prueba@hotmail.com\",\n  \"ubication\": 28050\n}"
+        }
+      }
+    },
+    {
+      "name": "Listar usuarios",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:9000/api/users/getAllUsers",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9000",
+          "path": ["api", "users", "getAllUsers"]
+        }
+      }
+    },
+    {
+      "name": "Actualizar usuario",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://localhost:9000/api/users/updateUser/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9000",
+          "path": ["api", "users", "updateUser", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Felipe\",\n  \"lastname\": \"Guapache\",\n  \"email\": \"prueba@gmail.com\",\n  \"ubication\": 28020\n}"
+        }
+      }
+    },
+    {
+      "name": "Eliminar usuario",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "http://localhost:9000/api/users/deleteUser/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9000",
+          "path": ["api", "users", "deleteUser", "1"]
+        }
+      }
+    },
+    {
+      "name": "Clima por usuario",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:9000/api/users/getWeather/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9000",
+          "path": ["api", "users", "getWeather", "1"]
+        }
+      }
+    }
+  ]
 }
 ```
 
