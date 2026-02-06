@@ -63,7 +63,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con id: " + id));
         Integer zipCode = user.getUbication();
 
-        if (zipCode == null || (zipCode < 1000 && zipCode > 99999)) {
+        if (zipCode == null) {
             throw new IllegalArgumentException("Código postal inválido para el usuario con id: " + id);
         }
 
