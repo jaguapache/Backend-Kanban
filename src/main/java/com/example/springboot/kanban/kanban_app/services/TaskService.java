@@ -2,50 +2,20 @@ package com.example.springboot.kanban.kanban_app.services;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
 import com.example.springboot.kanban.kanban_app.models.Task;
-import com.example.springboot.kanban.kanban_app.repositories.TaskRepository;
 
-@Service
-public class TaskService {
+public interface TaskService {
 
-    private final TaskRepository kanbanRepository;
+    Task createTask(Task task);
 
-    public TaskService(TaskRepository kanbanRepository) {
-        this.kanbanRepository = kanbanRepository;
-    }
+    List<Task> getAllTasks();
 
-    public Task createTask(Task task) {
-        return kanbanRepository.save(task);
-    }
+    Task getTaskById(Long id);
 
-    public List<Task> getAllTasks() {
-        return kanbanRepository.findAll();
-    }
+    Task updateTask(Long id, Task updatedTask);
 
-    public Task getTaskById(Long id) {
-        return kanbanRepository.findById(id).orElse(null);
-    }
+    void deleteTask(Long id);
 
-    public Task updateTask(Long id, Task updatedTask) {
-        return kanbanRepository.findById(id).map(task -> {
-            task.setTitle(updatedTask.getTitle());
-            task.setStatus(updatedTask.getStatus());
-            task.setPriority(updatedTask.getPriority());
-            return kanbanRepository.save(task);
-        }).orElse(null);
-    }
-
-    public void deleteTask(Long id) {
-        if (!kanbanRepository.existsById(id)) {
-            throw new IllegalArgumentException("Tarea no encontrada con id: " + id);
-        }
-        kanbanRepository.deleteById(id);
-    }
-
-    public List<Task> getTasksByStatus(Task.TaskStatus status) {
-        return kanbanRepository.findByStatus(status);
-    }
+    List<Task> getTasksByStatus(Task.TaskStatus status);
 
 }
