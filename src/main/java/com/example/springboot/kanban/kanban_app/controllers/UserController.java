@@ -12,6 +12,8 @@ import com.example.springboot.kanban.kanban_app.models.User;
 
 import com.example.springboot.kanban.kanban_app.services.UserService;
 
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,6 +49,13 @@ public class UserController {
         }
         User createdUser = userService.createUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    }
+
+    @PostMapping("register")
+    public ResponseEntity<?> register(@Valid @RequestBody User user) {
+        User createdUser = userService.createUser(user);
+        createdUser.setAdmin(false);
+        return createUser(createdUser);
     }
 
     @GetMapping("getAllUsers")
