@@ -225,10 +225,10 @@ La API key se configura de forma externa usando variables de entorno y propiedad
     openweather.api.key=${OPENWEATHER_API_KEY}
     ```
 
-2. En tu terminal, antes de arrancar la aplicación, exporta la variable de entorno (ejemplo):
+2. Crea un fichero en la raiz llamada .env
 
     ```bash
-    export OPENWEATHER_API_KEY="8cdc15fdaf98e3b0619351de1f17ad58"
+    OPENWEATHER_API_KEY="YOU_API_KEY"
     ```
 
     De esta forma **la clave no se guarda en el repositorio**, solo en tu entorno local.
