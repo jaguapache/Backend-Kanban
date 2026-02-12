@@ -1,9 +1,21 @@
 package com.example.springboot.kanban.kanban_app.controllers;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+import java.time.Instant;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,9 +38,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class UserController {
 
     private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtEncoder jwtEncoder;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, AuthenticationManager authenticationManager, JwtEncoder jwtEncoder) {
         this.userService = userService;
+        this.authenticationManager = authenticationManager;
+        this.jwtEncoder = jwtEncoder;
     }
 
     private String formatError(RuntimeException e) {
@@ -53,9 +69,9 @@ public class UserController {
 
     @PostMapping("register")
     public ResponseEntity<?> register(@Valid @RequestBody User user) {
+        user.setAdmin(false);
         User createdUser = userService.createUser(user);
-        createdUser.setAdmin(false);
-        return createUser(createdUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     @GetMapping("getAllUsers")
@@ -100,4 +116,51 @@ public class UserController {
                     .body(formatError(e));
         }
     }
+
+    @PostMapping("login")
+    public ResponseEntity<?> loginMethod(@RequestBody User user) {
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("El email no puede estar vacío o nulo");
+        }
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("La contraseña no puede estar vacía o nula");
+        }
+
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                user.getEmail(), user.getPassword());
+
+        try {
+            Authentication authentication = authenticationManager.authenticate(authToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            Instant now = Instant.now();
+
+            boolean hasWriteRole = authentication.getAuthorities().stream()
+                    .anyMatch(a -> "WRITE".equals(a.getAuthority()));
+
+            String scope = hasWriteRole ? "users.read users.write" : "users.read";
+
+            JwtClaimsSet claims = JwtClaimsSet.builder()
+                    .issuer("self")
+                    .issuedAt(now)
+                    .expiresAt(now.plusSeconds(3600))
+                    .subject(user.getEmail())
+                    .claim("scope", scope)
+                    .build();
+
+            String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("access_token", token);
+            body.put("token_type", "Bearer");
+            body.put("scope", scope);
+
+            return ResponseEntity.ok(body);
+        } catch (AuthenticationException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Usuario o contraseña incorrectos");
+        }
+    }
+
 }
