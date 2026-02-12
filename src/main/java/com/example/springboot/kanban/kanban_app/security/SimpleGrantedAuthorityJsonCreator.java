@@ -1,4 +1,4 @@
-package com.example.springboot.kanban.kanban_app.config.security;
+package com.example.springboot.kanban.kanban_app.security;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

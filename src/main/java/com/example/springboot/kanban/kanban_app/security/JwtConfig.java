@@ -1,4 +1,4 @@
-package com.example.springboot.kanban.kanban_app.config.security;
+package com.example.springboot.kanban.kanban_app.security;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
