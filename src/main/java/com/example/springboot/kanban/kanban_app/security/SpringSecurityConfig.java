@@ -13,6 +13,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
 @Configuration
 public class SpringSecurityConfig {
 
@@ -36,7 +37,8 @@ public class SpringSecurityConfig {
                 .csrf(config -> config.disable())
                 .sessionManagement(managment -> managment.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers(HttpMethod.POST, "/api/users/register", "/api/users/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/**").hasAuthority("SCOPE_users.write")
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("SCOPE_users.write")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("SCOPE_users.write")

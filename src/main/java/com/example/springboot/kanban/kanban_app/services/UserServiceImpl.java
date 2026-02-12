@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final WebClient webClient;
 
-    @Value("${openweather.api.key:}")
+    @Value("${openweather.api.key}")
     private String openWeatherApiKey;
 
     public UserServiceImpl(UserRepository userRepository,
