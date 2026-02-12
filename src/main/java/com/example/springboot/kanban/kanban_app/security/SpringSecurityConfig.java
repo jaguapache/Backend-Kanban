@@ -1,4 +1,4 @@
-package com.example.springboot.kanban.kanban_app.config.security;
+package com.example.springboot.kanban.kanban_app.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
