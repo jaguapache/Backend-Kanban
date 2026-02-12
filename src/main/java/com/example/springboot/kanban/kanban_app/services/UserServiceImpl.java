@@ -43,6 +43,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new IllegalArgumentException("El email ya está registrado");
+        }
+
         Optional<Role> optionalRoleUser = roleRepository.findByName("READ_ONLY");
         List<Role> roles = new ArrayList<>();
 
@@ -53,6 +57,8 @@ public class UserServiceImpl implements UserService {
             optionalRoleAdmin.ifPresent(roles::add);
         }
         user.setRoles(roles);
+
+        user.setEnabled(true);
 
         String passwordEncoded = passwordEncoder.encode(user.getPassword());
         user.setPassword(passwordEncoded);

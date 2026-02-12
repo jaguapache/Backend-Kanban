@@ -53,9 +53,9 @@ public class UserController {
 
     @PostMapping("register")
     public ResponseEntity<?> register(@Valid @RequestBody User user) {
+        user.setAdmin(false);
         User createdUser = userService.createUser(user);
-        createdUser.setAdmin(false);
-        return createUser(createdUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     @GetMapping("getAllUsers")
@@ -100,4 +100,20 @@ public class UserController {
                     .body(formatError(e));
         }
     }
+
+    @PostMapping("login")
+    public String loginMethod(@RequestBody User user) {
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            return "El email no puede estar vacío o nulo";
+        }
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            return "La contraseña no puede estar vacía o nula";
+        }
+        /*
+         * boolean loginSuccessful = userService.login(user.getEmail(),
+         * user.getPassword())
+         */;
+        return "Credenciales inválidas";
+    }
+
 }
