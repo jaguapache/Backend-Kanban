@@ -70,13 +70,23 @@ public class UserController {
     @PostMapping("register")
     public ResponseEntity<?> register(@Valid @RequestBody User user) {
         user.setAdmin(false);
-        User createdUser = userService.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        try {
+            User createdUser = userService.createUser(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @GetMapping("getAllUsers")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getAllUsers();
+        return ResponseEntity.status(users.size() > 0 ? HttpStatus.OK : HttpStatus.NO_CONTENT).body(users);
+    }
+
+    @GetMapping("getUsersActivated")
+    public ResponseEntity<List<User>> getUsersActivated() {
+        List<User> users = userService.getUsersActivated();
         return ResponseEntity.status(users.size() > 0 ? HttpStatus.OK : HttpStatus.NO_CONTENT).body(users);
     }
 
@@ -86,6 +96,24 @@ public class UserController {
                 || user.getName().isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El nombre no puede estar vacío o nulo");
         }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autenticado");
+        }
+
+        boolean hasWriteScope = authentication.getAuthorities().stream()
+                .anyMatch(a -> "SCOPE_users.write".equals(a.getAuthority()));
+
+        User loggedUser = userService.getUserByEmail(authentication.getName());
+
+        boolean isOwner = loggedUser != null && loggedUser.getId() != null && loggedUser.getId().equals(id);
+
+        if (!hasWriteScope && !isOwner) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("No tienes permisos para modificar este usuario");
+        }
+
         User updatedUser = userService.updateUser(id, user);
         if (updatedUser == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado con id: " + id);
@@ -117,6 +145,19 @@ public class UserController {
         }
     }
 
+    @GetMapping("getUser/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
+        try {
+            User user = userService.getUserById(id);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado con id: " + id);
+            }
+            return ResponseEntity.ok(user);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
     @PostMapping("login")
     public ResponseEntity<?> loginMethod(@RequestBody User user) {
         if (user.getEmail() == null || user.getEmail().isBlank()) {
@@ -128,10 +169,16 @@ public class UserController {
                     .body("La contraseña no puede estar vacía o nula");
         }
 
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                user.getEmail(), user.getPassword());
-
         try {
+            User dbUser = userService.getUserByEmail(user.getEmail());
+            if (dbUser == null || !dbUser.isEnabled()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Usuario o contraseña incorrectos");
+            }
+
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    user.getEmail(), user.getPassword());
+
             Authentication authentication = authenticationManager.authenticate(authToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             Instant now = Instant.now();
@@ -141,11 +188,14 @@ public class UserController {
 
             String scope = hasWriteRole ? "users.read users.write" : "users.read";
 
+            Long userId = dbUser.getId();
+
             JwtClaimsSet claims = JwtClaimsSet.builder()
                     .issuer("self")
                     .issuedAt(now)
                     .expiresAt(now.plusSeconds(3600))
                     .subject(user.getEmail())
+                    .claim("user_id", userId)
                     .claim("scope", scope)
                     .build();
 
