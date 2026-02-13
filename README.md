@@ -209,6 +209,10 @@ CREATE TABLE roles (
   name VARCHAR(50) NOT NULL UNIQUE
 );
 
+-- Inserción de roles por defecto
+INSERT INTO roles (id, name) VALUES (1, 'READ_ONLY');
+INSERT INTO roles (id, name) VALUES (2, 'WRITE');
+
 CREATE TABLE users_roles (
   user_id BIGINT NOT NULL,
   role_id BIGINT NOT NULL,

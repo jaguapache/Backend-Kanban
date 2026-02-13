@@ -45,10 +45,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/users/updateUser/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("SCOPE_users.write")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("SCOPE_users.write")
-                        .requestMatchers(HttpMethod.POST, "/api/kanban/**").hasAuthority("SCOPE_users.write")
-                        .requestMatchers(HttpMethod.GET, "/api/kanban/**").hasAuthority("SCOPE_users.write")
-                        .requestMatchers(HttpMethod.PUT, "/api/kanban/**").hasAuthority("SCOPE_users.write")
-                        .requestMatchers(HttpMethod.DELETE, "/api/kanban/**").hasAuthority("SCOPE_users.write")
+                        .requestMatchers("/api/kanban/**").hasAuthority("SCOPE_users.write")
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
