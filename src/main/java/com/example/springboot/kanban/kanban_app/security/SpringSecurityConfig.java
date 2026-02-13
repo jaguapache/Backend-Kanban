@@ -38,7 +38,8 @@ public class SpringSecurityConfig {
                 .sessionManagement(managment -> managment.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(HttpMethod.POST, "/api/users/login", "/api/users/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/getAllUsers").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/getAllUsers", "/api/users/getUsersActivated")
+                        .hasAnyAuthority("SCOPE_users.write", "SCOPE_users.read")
                         .requestMatchers(HttpMethod.GET, "/api/kanban/tasks").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/**").hasAuthority("SCOPE_users.write")
                         .requestMatchers(HttpMethod.PUT, "/api/users/updateUser/**").authenticated()
