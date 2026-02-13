@@ -43,21 +43,38 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("El email ya está registrado");
-        }
+        User existingUser = userRepository.findByEmail(user.getEmail());
 
         Optional<Role> optionalRoleUser = roleRepository.findByName("READ_ONLY");
         List<Role> roles = new ArrayList<>();
-
         optionalRoleUser.ifPresent(roles::add);
 
         if (user.isAdmin()) {
             Optional<Role> optionalRoleAdmin = roleRepository.findByName("WRITE");
             optionalRoleAdmin.ifPresent(roles::add);
         }
-        user.setRoles(roles);
 
+        // Si el usuario ya existe y está deshabilitado, lo reactivamos
+        if (existingUser != null) {
+            if (!existingUser.isEnabled()) {
+                existingUser.setName(user.getName());
+                existingUser.setLastname(user.getLastname());
+                existingUser.setEmail(user.getEmail());
+                existingUser.setUbication(user.getUbication());
+                existingUser.setEnabled(true);
+                existingUser.setRoles(roles);
+
+                String passwordEncoded = passwordEncoder.encode(user.getPassword());
+                existingUser.setPassword(passwordEncoded);
+
+                return userRepository.save(existingUser);
+            } else {
+                throw new IllegalArgumentException("El email ya está registrado");
+            }
+        }
+
+        // Usuario nuevo
+        user.setRoles(roles);
         user.setEnabled(true);
 
         String passwordEncoded = passwordEncoder.encode(user.getPassword());
@@ -71,6 +88,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getUsersActivated() {
+        return userRepository.findByEnabledTrue();
+    }
+
+    @Override
     public User getUserById(Long id) {
         return userRepository.findById(id).orElse(null);
     }
@@ -81,6 +103,8 @@ public class UserServiceImpl implements UserService {
             user.setName(updatedUser.getName());
             user.setLastname(updatedUser.getLastname());
             user.setEmail(updatedUser.getEmail());
+            user.setUbication(updatedUser.getUbication());
+            user.setEnabled(updatedUser.isEnabled());
             return userRepository.save(user);
         }).orElse(null);
     }
@@ -136,6 +160,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     private Map<String, Integer> formatValues(Map<?, ?> main) {
