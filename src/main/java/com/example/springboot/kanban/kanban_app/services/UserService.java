@@ -11,6 +11,8 @@ public interface UserService {
 
     List<User> getAllUsers();
 
+    List<User> getUsersActivated();
+
     User getUserById(Long id);
 
     User updateUser(Long id, User updatedUser);
@@ -20,5 +22,7 @@ public interface UserService {
     WeatherDTO getWeatherByUserId(Long id);
 
     boolean existsByEmail(String email);
+
+    User getUserByEmail(String email);
 
 }
