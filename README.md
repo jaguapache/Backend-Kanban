@@ -115,6 +115,9 @@ Este proyecto es el **backend** de una aplicación Kanban de práctica para VIEW
 - Estados de tarea: `TODO`, `DOING`, `DONE`.
 - Prioridades de tarea: `Baja`, `Media`, `Alta`.
 - Arquitectura típica de Spring Boot: capas de controlador, servicio y repositorio.
+- Gestión de usuarios con roles `READ_ONLY` y `WRITE`.
+- Autenticación por email/contraseña usando JWT (Spring Security Resource Server).
+- Protección de endpoints de tareas y usuarios según rol/scope.
 
 ### Base de datos
 
@@ -172,11 +175,30 @@ WHERE status = 'TODO';
 
 ```sql
 CREATE TABLE users (
-    id       BIGSERIAL PRIMARY KEY,
-    name     VARCHAR(100) NOT NULL,
-    lastname VARCHAR(100) NOT NULL,
-    email    VARCHAR(255) NOT NULL,
-    ubication   INTEGER NOT NULL CHECK (ubication BETWEEN 10000 AND 99999)
+  id         BIGSERIAL PRIMARY KEY,
+  name       VARCHAR(100) NOT NULL,
+  lastname   VARCHAR(100) NOT NULL,
+  email      VARCHAR(255) NOT NULL UNIQUE,
+  password   VARCHAR(255) NOT NULL,
+  enabled    BOOLEAN NOT NULL DEFAULT TRUE,
+  ubication  INTEGER NOT NULL CHECK (ubication BETWEEN 10000 AND 99999)
+);
+```
+
+#### Tabla de roles y relación usuarios-roles
+
+```sql
+CREATE TABLE roles (
+  id   BIGSERIAL PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE users_roles (
+  user_id BIGINT NOT NULL,
+  role_id BIGINT NOT NULL,
+  PRIMARY KEY (user_id, role_id),
+  CONSTRAINT fk_users_roles_user FOREIGN KEY (user_id) REFERENCES users(id),
+  CONSTRAINT fk_users_roles_role FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 ```
 
@@ -247,11 +269,46 @@ La API se expone, en estos endpoints:
 
 #### Usuarios (UserController)
 
-- `POST /api/users/createUser` → crea un usuario nuevo.
-- `GET /api/users/getAllUsers` → devuelve la lista de usuarios.
-- `PUT /api/users/updateUser/{id}` → actualiza un usuario existente.
+- `POST /api/users/register` → registro de usuario de aplicación. Crea un usuario con rol `READ_ONLY`. Si el email ya existe y el usuario está deshabilitado (`enabled = false`), lo reactiva (pone `enabled = true`, actualiza datos y contraseña) devolviendo `201`. Si el email ya está registrado y el usuario está habilitado, devuelve `400`.
+- `POST /api/users/login` → login por email/contraseña. Devuelve un token JWT con campos `access_token`, `token_type` (Bearer) y `scope` (`users.read` o `users.read users.write`) si las credenciales son correctas y el usuario está habilitado. Si el usuario no existe, está deshabilitado o la contraseña es incorrecta, devuelve `401` con el mensaje `Usuario o contraseña incorrectos`.
+- `POST /api/users/createUser` → crea un usuario nuevo (uso más administrativo, similar a `register` pero permitiendo marcar el campo `admin` para asignar también el rol `WRITE`).
+- `GET /api/users/getAllUsers` → devuelve la lista de usuarios (sin filtrar por `enabled`).
+- `GET /api/users/getUsersActivated` → devuelve solo los usuarios con `enabled = true`.
+- `GET /api/users/getUser/{id}` → devuelve un usuario concreto por `id`.
+- `PUT /api/users/updateUser/{id}` → actualiza un usuario existente. Los usuarios con rol `READ_ONLY` solo pueden modificar sus propios datos; los usuarios con rol `WRITE` pueden modificar cualquier usuario.
 - `DELETE /api/users/deleteUser/{id}` → elimina un usuario.
 - `GET /api/users/getWeather/{id}` → obtiene la información meteorológica (temp, tempMin, tempMax) asociada al usuario mediante OpenWeather.
+
+### Seguridad y JWT (backend)
+
+- El backend usa Spring Security como **Resource Server** para validar tokens JWT.
+- El login (`/api/users/login`) genera un JWT que incluye:
+  - `sub` → email del usuario.
+  - `user_id` → identificador del usuario en base de datos.
+  - `scope` → `users.read` o `users.read users.write` según los roles del usuario.
+- Los scopes del token se mapean a authorities `SCOPE_users.read` y `SCOPE_users.write`.
+- Reglas principales:
+  - Endpoints de login y registro (`/api/users/login`, `/api/users/register`) están abiertos.
+  - Endpoints de gestión de tareas (`/api/kanban/**`) y operaciones de escritura sobre usuarios (`POST/PUT/DELETE /api/users/**`) requieren un token válido con scope `users.write`.
+  - Los usuarios con solo `READ_ONLY` (scope `users.read`) pueden consultar y actualizar únicamente su propio usuario mediante `/api/users/updateUser/{id}`.
+
+#### Ejemplo de login y uso del token en Postman
+
+1. Petición `POST http://localhost:9000/api/users/login` con body JSON:
+
+    ```json
+    {
+      "email": "usuario@example.com",
+      "password": "tu_password"
+    }
+    ```
+
+2. Copia el valor de `access_token` de la respuesta.
+3. En las siguientes peticiones protegidas, añade el header:
+
+    ```text
+    Authorization: Bearer <access_token>
+    ```
 
 ### Colección Postman (backend)
 
@@ -271,7 +328,8 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
             "request": {
                 "method": "POST",
                 "header": [
-                    { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
                 "url": {
                     "raw": "http://localhost:9000/api/kanban/task",
@@ -290,13 +348,16 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
             "name": "Listar tareas",
             "request": {
                 "method": "GET",
-                "url": {
-                    "raw": "http://localhost:9000/api/kanban/tasks",
-                    "protocol": "http",
-                    "host": ["localhost"],
-                    "port": "9000",
-                    "path": ["api", "kanban", "tasks"]
-                }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:9000/api/kanban/tasks",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "kanban", "tasks"]
+            }
             }
         },
         {
@@ -304,7 +365,8 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
             "request": {
                 "method": "PUT",
                 "header": [
-                    { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
                 "url": {
                     "raw": "http://localhost:9000/api/kanban/task/1",
@@ -323,26 +385,32 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
             "name": "Eliminar tarea",
             "request": {
                 "method": "DELETE",
-                "url": {
-                    "raw": "http://localhost:9000/api/kanban/task/1",
-                    "protocol": "http",
-                    "host": ["localhost"],
-                    "port": "9000",
-                    "path": ["api", "kanban", "task", "1"]
-                }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:9000/api/kanban/task/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "kanban", "task", "1"]
+            }
             }
         },
         {
             "name": "Tareas por estado",
             "request": {
                 "method": "GET",
-                "url": {
-                    "raw": "http://localhost:9000/api/kanban/getByStatus/TODO",
-                    "protocol": "http",
-                    "host": ["localhost"],
-                    "port": "9000",
-                    "path": ["api", "kanban", "getByStatus", "TODO"]
-                }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:9000/api/kanban/getByStatus/TODO",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "kanban", "getByStatus", "TODO"]
+            }
             }
         }
     ]
@@ -359,11 +427,52 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
   },
   "item": [
     {
-      "name": "Crear usuario",
+      "name": "Registro usuario",
       "request": {
         "method": "POST",
         "header": [
           { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://localhost:9000/api/users/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9000",
+          "path": ["api", "users", "register"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Alejandro\",\n  \"lastname\": \"Guapache\",\n  \"email\": \"prueba@hotmail.com\",\n  \"password\": \"mi_password\",\n  \"ubication\": 28050\n}"
+        }
+      }
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://localhost:9000/api/users/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9000",
+          "path": ["api", "users", "login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"prueba@hotmail.com\",\n  \"password\": \"mi_password\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Crear usuario (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
         ],
         "url": {
           "raw": "http://localhost:9000/api/users/createUser",
@@ -374,7 +483,7 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Alejandro\",\n  \"lastname\": \"Guapache\",\n  \"email\": \"prueba@hotmail.com\",\n  \"ubication\": 28050\n}"
+          "raw": "{\n  \"name\": \"Admin\",\n  \"lastname\": \"User\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"mi_password\",\n  \"ubication\": 28050,\n  \"admin\": true\n}"
         }
       }
     },
@@ -382,6 +491,9 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
       "name": "Listar usuarios",
       "request": {
         "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
         "url": {
           "raw": "http://localhost:9000/api/users/getAllUsers",
           "protocol": "http",
@@ -392,11 +504,44 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
       }
     },
     {
+      "name": "Listar usuarios activados",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:9000/api/users/getUsersActivated",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9000",
+          "path": ["api", "users", "getUsersActivated"]
+        }
+      }
+    },
+    {
+      "name": "Obtener usuario por id",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:9000/api/users/getUser/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9000",
+          "path": ["api", "users", "getUser", "1"]
+        }
+      }
+    },
+    {
       "name": "Actualizar usuario",
       "request": {
         "method": "PUT",
         "header": [
-          { "key": "Content-Type", "value": "application/json" }
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
         ],
         "url": {
           "raw": "http://localhost:9000/api/users/updateUser/1",
@@ -415,6 +560,9 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
       "name": "Eliminar usuario",
       "request": {
         "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
         "url": {
           "raw": "http://localhost:9000/api/users/deleteUser/1",
           "protocol": "http",
@@ -428,6 +576,9 @@ Puedes importar la siguiente colección en Postman ("Import" → "Raw text") par
       "name": "Clima por usuario",
       "request": {
         "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
         "url": {
           "raw": "http://localhost:9000/api/users/getWeather/1",
           "protocol": "http",
