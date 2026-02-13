@@ -172,8 +172,8 @@ public class UserController {
         try {
             User dbUser = userService.getUserByEmail(user.getEmail());
             if (dbUser == null || !dbUser.isEnabled()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Usuario o contraseña incorrectos");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Usuario no encontrado");
             }
 
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

@@ -4,7 +4,7 @@ Este repositorio contiene tanto el **frontend** (tablero Kanban en React + Vite)
 
 ## Frontend - Tablero Kanban (React + Vite)
 
-Aplicación de tablero **Kanban** práctico para la formación, desarrollada usando [React](https://react.dev/) + [Vite](https://vite.dev/) + [TypeScript](https://www.typescriptlang.org/) y estilos con [Tailwind CSS](https://tailwindcss.com/) (v4).
+Aplicación de tablero **Kanban** práctico para la formación, desarrollada usando [React](https://react.dev/) + [Vite](https://vite.dev/) + [TypeScript](https://www.typescriptlang.org/) y estilos con [Tailwind CSS](https://tailwindcss.com/) (v4), con **autenticación JWT** y **gestión de roles** (`READ_ONLY` / `WRITE`) integrada con el backend.
 
 ### Ecosistema principal
 
@@ -53,19 +53,35 @@ Levanta el servidor de desarrollo de Vite con hot reload (por defecto en `http:/
 
 ### Funcionalidades principales (frontend)
 
+- **Autenticación y gestión de sesión**
+  - Pantalla de **login** con email y contraseña.
+  - Consumo del endpoint `/api/users/login` y almacenamiento del **token JWT** en `localStorage`.
+  - Decodificación del JWT en el frontend para obtener `scope` y `user_id`.
+  - Cierre de sesión manual (botón "Cerrar sesión") y automático cuando el backend responde `401`.
+
+- **Gestión de roles y permisos (READ_ONLY / WRITE)**
+  - El `scope` del JWT (`users.read` / `users.read users.write`) se traduce en un flag `writeScope` en el frontend.
+  - Usuarios con **solo lectura** (`READ_ONLY`) pueden ver el tablero y los usuarios, pero:
+    - No pueden arrastrar tarjetas (Drag & Drop deshabilitado).
+    - No ven menús de edición/eliminación de tareas o usuarios.
+  - Usuarios con rol **WRITE** tienen permisos completos de escritura en tareas y usuarios (según reglas del backend).
+
 - **Tablero Kanban con Drag & Drop**
   - Tres columnas: `TODO`, `DOING` y `DONE`.
   - Reordenación de tarjetas dentro de la misma columna y movimiento entre columnas, implementado con `@dnd-kit/core` y `@dnd-kit/sortable`.
-  - El orden y la columna de cada tarjeta se persisten en `localStorage` bajo la clave `dataTable`.
+  - Las tareas se cargan y persisten contra la API REST del backend (`/api/kanban/tasks`, `/api/kanban/task/...`).
+  - El Drag & Drop solo está activo cuando el usuario tiene `writeScope`.
 
-- **Modal para crear nuevas tareas**
-  - Botón "Nueva tarea" en el header que abre un modal de `react-modal`.
-  - Formulario para introducir título y prioridad de la tarea.
-  - Al guardar, se añade una nueva tarjeta en la columna `TODO` y se actualiza `localStorage`.
+- **Gestión de usuarios y perfil**
+  - Listado de usuarios consumiendo `/api/users/getAllUsers` o `/api/users/getUsersActivated`.
+  - Alta de usuarios desde el frontend (registro) usando `/api/users/register`.
+  - Edición y desactivación de usuarios mediante modales (`react-modal`) conectados a `/api/users/updateUser/{id}`.
+  - Detalle de usuario con información básica y **datos meteorológicos** (consumo del endpoint `/api/users/getWeather/{id}` expuesto por el backend).
+  - Vista simplificada de **"Mi perfil"** para usuarios con rol `READ_ONLY`, usando modales en lugar de navegación de página completa.
 
 - **Contadores por columna**
   - Sección de contadores que muestra el número de tareas en cada columna.
-  - Los contadores se actualizan automáticamente cuando se mueve o se crea/elimina una tarea.
+  - Los contadores se actualizan automáticamente cuando se mueve, se crea o se elimina una tarea.
 
 ### Build de producción (frontend)
 
@@ -271,6 +287,7 @@ La API se expone, en estos endpoints:
 
 - `POST /api/users/register` → registro de usuario de aplicación. Crea un usuario con rol `READ_ONLY`. Si el email ya existe y el usuario está deshabilitado (`enabled = false`), lo reactiva (pone `enabled = true`, actualiza datos y contraseña) devolviendo `201`. Si el email ya está registrado y el usuario está habilitado, devuelve `400`.
 - `POST /api/users/login` → login por email/contraseña. Devuelve un token JWT con campos `access_token`, `token_type` (Bearer) y `scope` (`users.read` o `users.read users.write`) si las credenciales son correctas y el usuario está habilitado. Si el usuario no existe, está deshabilitado o la contraseña es incorrecta, devuelve `401` con el mensaje `Usuario o contraseña incorrectos`.
+- `POST /api/users/login` → login por email/contraseña. Devuelve un token JWT con campos `access_token`, `token_type` (Bearer) y `scope` (`users.read` o `users.read users.write`) si las credenciales son correctas y el usuario está habilitado. Si el usuario no existe o está deshabilitado (`enabled = false`), devuelve `404` con el mensaje `Usuario no encontrado`. Si la contraseña es incorrecta, devuelve `401` con el mensaje `Usuario o contraseña incorrectos`.
 - `POST /api/users/createUser` → crea un usuario nuevo (uso más administrativo, similar a `register` pero permitiendo marcar el campo `admin` para asignar también el rol `WRITE`).
 - `GET /api/users/getAllUsers` → devuelve la lista de usuarios (sin filtrar por `enabled`).
 - `GET /api/users/getUsersActivated` → devuelve solo los usuarios con `enabled = true`.
