@@ -16,7 +16,7 @@ public class WebConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins("http://localhost:5173", "http://localhost:4173",
-                                "https://backend-kanban-6tgy.onrender.com")
+                                "https://kanban-react-sxj0.onrender.com")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowedHeaders("*")
                         .allowCredentials(true);
